@@ -46,6 +46,7 @@ setup(
             'csvgrep = csvkit.utilities.csvgrep:launch_new_instance',
             'csvjoin = csvkit.utilities.csvjoin:launch_new_instance',
             'csvjson = csvkit.utilities.csvjson:launch_new_instance',
+            'csvkeyword = csvkeyword.utilities.csvkeyword:launch_new_instance',
             'csvlook = csvkit.utilities.csvlook:launch_new_instance',
             'csvpy = csvkit.utilities.csvpy:launch_new_instance',
             'csvsort = csvkit.utilities.csvsort:launch_new_instance',

@@ -1,15 +1,75 @@
 import csv
 
 class KeywordFilteringCSVReader:
-    def __init__(self, csv_file, keyword, delimiter=',', quotechar='"'):
-        self.csv_file = csv_file
-        self.keyword = keyword
-        self.delimiter = delimiter
-        self.quotechar = quotechar
+    def __init__(self, filename, keywords):
+        self.filename = filename
+        self.keywords = keywords
 
-    def __iter__(self):
-        with open(self.csv_file, 'r', newline='') as file:
-            reader = csv.reader(file, delimiter=self.delimiter, quotechar=self.quotechar)
+    def filter_rows(self):
+        filtered_rows = []
+
+        with open(self.filename, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            header = next(reader)  # Read the header row
+
             for row in reader:
-                if any(self.keyword in cell for cell in row):
-                    yield row
+                if self.row_contains_keywords(row):
+                    filtered_rows.append(row)
+
+        return filtered_rows
+
+    def row_contains_keywords(self, row):
+        for keyword in self.keywords:
+            if any(keyword in cell for cell in row):
+                return True
+        return False
+
+
+# 파일 읽기
+DEST = "./processed_data/"
+comp_list = ["compatibility.csv", "incompatibility.csv"]
+
+# 트윗터 패키지 안에 konlpy 모듈 호출
+from konlpy.tag import Twitter
+twitter = Twitter()
+
+# 키워드 추출을 위한 리스트 초기화
+noun_list = []
+
+# 문장들 저장 및 키워드 추출
+for filename in comp_list:
+    with open(DEST + filename, 'r', encoding='utf-8') as f:
+        rdr = csv.reader(f)
+
+        # 변수 okja에 문장들 저장
+        okja = []
+        food_names = []
+        for line in rdr:
+            okja.append(line[2])
+            food_names.append(line[0])
+            food_names.append(line[1])
+
+        # 각 문장별로 형태소 구분하기
+        sentences_tag = []
+        for sentence in okja:
+            morph = twitter.pos(sentence)
+            sentences_tag.append(morph)
+
+        # 명사만 선별해 리스트에 담기
+        for sentence1 in sentences_tag:
+            for word, tag in sentence1:
+                if tag in ['Noun']:
+                    noun_list.append(word)
+
+# CSV 파일 이름
+csv_filename = 'your_csv_file.csv'
+
+# KeywordFilteringCSVReader 인스턴스 생성
+csv_reader = KeywordFilteringCSVReader(csv_filename, noun_list)
+
+# 필터링된 행 추출
+filtered_rows = csv_reader.filter_rows()
+
+# 필터링된 행 출력
+for row in filtered_rows:
+    print(row)

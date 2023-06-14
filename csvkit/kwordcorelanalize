@@ -4,18 +4,35 @@ from scipy.stats import pearsonr
 class KeywordCorrelationAnalyzer:
     def __init__(self):
         self.data = None
+        self.keyword1_counts = None
+        self.keyword2_counts = None
 
     def read_csv(self, file_path):
         self.data = pd.read_csv(file_path)
 
-    def calculate_correlation(self, keyword1, keyword2):
+    def count_keyword_occurrences(self, keyword1, keyword2):
         if self.data is None:
-            print("CSV file is not loaded. Please call read_csv() method first.")
+            print("csv파일이 없습니다.")
             return
 
         if keyword1 not in self.data.columns or keyword2 not in self.data.columns:
-            print("Invalid keyword(s).")
+            print("키워드가 없습니다.")
             return
 
-        correlation, _ = pearsonr(self.data[keyword1], self.data[keyword2])
+        self.keyword1_counts = self.data[keyword1].value_counts()
+        self.keyword2_counts = self.data[keyword2].value_counts()
+
+    def calculate_correlation(self):
+        if self.keyword1_counts is None or self.keyword2_counts is None:          
+            return
+
+        merged_data = pd.concat([self.keyword1_counts, self.keyword2_counts], axis=1, sort=False).fillna(0)
+        correlation, _ = pearsonr(merged_data.iloc[:, 0], merged_data.iloc[:, 1])
         return correlation
+
+    def analyze_correlation(self):
+        keyword1 = input("Enter the first keyword: ")
+        keyword2 = input("Enter the second keyword: ")
+        self.count_keyword_occurrences(keyword1, keyword2)
+        correlation = self.calculate_correlation()
+        print(f"Correlation between '{keyword1}' and '{keyword2}': {correlation}")
